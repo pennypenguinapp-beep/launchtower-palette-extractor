@@ -285,11 +285,7 @@
       if (!byHex[k]) { byHex[k] = { r: c.r, g: c.g, b: c.b, count: 0 }; order.push(k); }
       byHex[k].count += c.count;
     });
-    var uniq = order.map(function (k) {
-      var c = byHex[k];
-      c.share = (c.count / pixels.length) * 100;
-      return c;
-    });
+    var uniq = order.map(function (k) { return byHex[k]; });
     // absorb tiny fragments (< 2% of pixels) into the nearest surviving color
     var total = pixels.length;
     var kept = uniq.filter(function (c) { return c.count >= total * 0.02; });
@@ -301,10 +297,24 @@
           var d = Math.abs(k.r - c.r) + Math.abs(k.g - c.g) + Math.abs(k.b - c.b);
           if (d < bestD) { bestD = d; best = k; }
         });
-        if (best) { best.count += c.count; best.share += c.share; }
+        if (best) best.count += c.count;
       });
       uniq = kept;
     }
+    // TRUE pixel share: assign EVERY opaque pixel to its nearest palette color
+    // (Euclidean RGB distance) and count -- not the quantizer bucket size.
+    var counts = new Array(uniq.length).fill(0);
+    for (var i = 0; i < pixels.length; i++) {
+      var pr = pixels[i][0], pg = pixels[i][1], pb = pixels[i][2];
+      var bi = 0, bd = Infinity;
+      for (var j = 0; j < uniq.length; j++) {
+        var dr = uniq[j].r - pr, dg = uniq[j].g - pg, db = uniq[j].b - pb;
+        var d = dr * dr + dg * dg + db * db;
+        if (d < bd) { bd = d; bi = j; }
+      }
+      counts[bi]++;
+    }
+    uniq.forEach(function (c, j) { c.count = counts[j]; c.share = (counts[j] / total) * 100; });
     // sort by frequency (most common first)
     uniq.sort(function (a, b) { return b.count - a.count; });
     currentPalette = uniq;
