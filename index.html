@@ -149,6 +149,10 @@
       </div>
       <input type="file" id="file" accept="image/png,image/jpeg,image/gif">
       <div class="controls">
+        <button id="loadExample" class="primary">Load example</button>
+        <span style="font-size:.8rem;color:var(--muted)">no image handy? try the built-in sample</span>
+      </div>
+      <div class="controls">
         <label for="ncolors">Colors</label>
         <select id="ncolors">
           <option value="4">4</option>
@@ -228,6 +232,71 @@
     };
     img.src = url;
   }
+
+  // ---- Built-in example image (generated in code, no network) ----
+  function loadExample() {
+    showErr("");
+    var c = document.createElement("canvas");
+    c.width = 64; c.height = 64;
+    var ctx = c.getContext("2d");
+    // sky gradient bands
+    var sky = ["#0b1d3a", "#14305c", "#1f4a86", "#2f6bb0", "#4a8fd4", "#79b8ec", "#a9d6f5"];
+    for (var y = 0; y < 40; y++) {
+      ctx.fillStyle = sky[Math.min(sky.length - 1, Math.floor(y / 6))];
+      ctx.fillRect(0, y, 64, 1);
+    }
+    // sun
+    ctx.fillStyle = "#ffd75e";
+    ctx.fillRect(44, 8, 10, 10);
+    ctx.fillStyle = "#fff3b0";
+    ctx.fillRect(46, 10, 6, 6);
+    // clouds
+    ctx.fillStyle = "#e8f2fb";
+    ctx.fillRect(8, 12, 14, 3); ctx.fillRect(10, 10, 8, 2);
+    ctx.fillRect(30, 22, 12, 3); ctx.fillRect(32, 20, 6, 2);
+    // hills
+    ctx.fillStyle = "#2e7d4f";
+    for (var x = 0; x < 64; x++) {
+      var h = 14 + Math.round(6 * Math.sin(x / 5));
+      ctx.fillRect(x, 40 - h, 1, h);
+    }
+    // ground
+    ctx.fillStyle = "#1d5636";
+    ctx.fillRect(0, 40, 64, 24);
+    ctx.fillStyle = "#173f28";
+    ctx.fillRect(0, 56, 64, 8);
+    // little house
+    ctx.fillStyle = "#c96f3b";
+    ctx.fillRect(14, 28, 12, 12);
+    ctx.fillStyle = "#8a4a26";
+    ctx.fillRect(14, 26, 12, 2);
+    ctx.fillStyle = "#3a2a1c";
+    ctx.fillRect(18, 33, 4, 7);
+    ctx.fillStyle = "#ffe9a8";
+    ctx.fillRect(22, 30, 3, 3);
+    // tree
+    ctx.fillStyle = "#5a3a22";
+    ctx.fillRect(48, 32, 3, 8);
+    ctx.fillStyle = "#3fae62";
+    ctx.fillRect(44, 24, 11, 9);
+    ctx.fillRect(46, 21, 7, 3);
+    // path
+    ctx.fillStyle = "#d9b98a";
+    for (var y2 = 40; y2 < 64; y2++) {
+      var w2 = 2 + Math.floor((y2 - 40) / 4);
+      ctx.fillRect(19 - Math.floor(w2 / 2), y2, w2, 1);
+    }
+    var img = new Image();
+    img.onload = function () {
+      currentImg = img;
+      currentName = "example";
+      renderPreview(img);
+      extract();
+      reBtn.disabled = false;
+    };
+    img.src = c.toDataURL("image/png");
+  }
+  $("loadExample").addEventListener("click", loadExample);
 
   function renderPreview(img) {
     var ph = $("ph"); if (ph) ph.remove();
